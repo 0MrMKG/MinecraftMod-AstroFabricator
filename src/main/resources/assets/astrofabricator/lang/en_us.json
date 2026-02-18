@@ -1,0 +1,13 @@
+{
+  "itemGroup.astrofabricator": "Example Mod Tab",
+  "block.astrofabricator.example_block": "Example Block",
+  "item.astrofabricator.example_item": "Example Item",
+
+  "astrofabricator.configuration.title": "AstroFabricator Configs",
+  "astrofabricator.configuration.section.astrofabricator.common.toml": "AstroFabricator Configs",
+  "astrofabricator.configuration.section.astrofabricator.common.toml.title": "AstroFabricator Configs",
+  "astrofabricator.configuration.items": "Item List",
+  "astrofabricator.configuration.logDirtBlock": "Log Dirt Block",
+  "astrofabricator.configuration.magicNumberIntroduction": "Magic Number Text",
+  "astrofabricator.configuration.magicNumber": "Magic Number"
+}
