@@ -13,6 +13,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.Comparator;
+
 @EventBusSubscriber(modid = "astrofabricator", value = Dist.CLIENT)
 public class ClientCommandHandler {
 
@@ -29,17 +31,14 @@ public class ClientCommandHandler {
                 // 2. 维度传送指令 (tpd <维度ID>)
                 .then(Commands.literal("tpd")
                         .then(Commands.argument("target", ResourceLocationArgument.id())
-                                // --- 核心改进：代码补全逻辑 ---
+                                // --- 核心改进：带优先级的排序代码补全 ---
                                 .suggests((ctx, builder) -> {
                                     var connection = Minecraft.getInstance().getConnection();
                                     if (connection != null) {
-                                        // 从客户端注册表获取所有已定义的维度 Key
-                                        // 这包括了主世界、地狱、末地以及你 Mod 中注册的所有星域
                                         connection.registryAccess().registry(Registries.DIMENSION).ifPresent(registry -> {
-                                            registry.keySet().forEach(loc -> {
-                                                // 将所有的维度 ResourceLocation 转换为字符串加入补全列表
-                                                builder.suggest(loc.toString());
-                                            });
+                                            registry.keySet().stream()
+                                                    .sorted(getDimensionComparator()) // 调用下方的排序逻辑
+                                                    .forEach(loc -> builder.suggest(loc.toString()));
                                         });
                                     }
                                     return builder.buildFuture();
@@ -58,5 +57,30 @@ public class ClientCommandHandler {
                                     return 1;
                                 })))
         );
+    }
+
+    /**
+     * 定义维度排序规则：
+     * 1. minecraft 原版命名空间优先级最高
+     * 2. 然后按命名空间字母排序 (astrofabricator, etc.)
+     * 3. 最后按维度名称字母排序 (sakura_dimension, tatooine, etc.)
+     */
+    public static Comparator<ResourceLocation> getDimensionComparator() {
+        return (loc1, loc2) -> {
+            String ns1 = loc1.getNamespace();
+            String ns2 = loc2.getNamespace();
+            boolean isMc1 = ns1.equals("minecraft");
+            boolean isMc2 = ns2.equals("minecraft");
+
+            if (isMc1 && !isMc2) return -1; // loc1 是原版，排前面
+            if (!isMc1 && isMc2) return 1;  // loc2 是原版，排前面
+
+            // 如果同为原版或同为 Mod，先按 namespace 字母排
+            int nsCompare = ns1.compareTo(ns2);
+            if (nsCompare != 0) return nsCompare;
+
+            // 如果 namespace 也一样，按具体名称字母排
+            return loc1.getPath().compareTo(loc2.getPath());
+        };
     }
 }
