@@ -4,7 +4,8 @@
   "package": "com.astrofabricator.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ServerLevelMixin"
+    "ServerLevelMixin",
+    "AstroRandomStateMixin"
   ],
   "server": [],
   "injectors": {

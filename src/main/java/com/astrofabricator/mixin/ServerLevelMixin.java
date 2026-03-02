@@ -15,21 +15,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = ServerLevel.class, priority = 800)
 public abstract class ServerLevelMixin {
 
-    @Unique
-    private static long astro$iterationCounter = 0;
+    // 删除了繁琐的 astro$iterationCounter 静态变量
 
     @Unique
     private long astro$dimensionUniqueSeed;
 
     /**
-     * 1. 修改构造函数种子参数
+     * 1. 修改构造函数种子参数 (主要影响群系边缘平滑)
      * 使用 @Local 捕获需要的 ResourceKey，避免签名不匹配导致崩溃
      */
     @ModifyVariable(method = "<init>", at = @At("HEAD"), argsOnly = true, ordinal = 0)
     private static long astro$applyRandomSeed(long originalSeed, @Local(argsOnly = true) ResourceKey<Level> key) {
         if (key.location().getNamespace().equals("astrofabricator")) {
-            long newSeed = originalSeed + (astro$iterationCounter++ * 0x517cc1b727220a95L);
-            System.out.println("§b[Astro Mixin]§f Registering Seed for " + key.location().getPath() + ": " + newSeed);
+            // 【极简修改】与 ChunkMap 保持一致，砍掉乘法，直接加上维度名哈希
+            long newSeed = originalSeed + key.location().hashCode();
+            System.out.println("§b[Astro Mixin]§f Registering Biome Zoom Seed for " + key.location().getPath() + ": " + newSeed);
             return newSeed;
         }
         return originalSeed;
